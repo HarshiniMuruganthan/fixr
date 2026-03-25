@@ -11,7 +11,9 @@ dotenv.config();
 connectDB();
 
 const app = express();
+const cors = require("cors");
 
+app.use(cors());
 app.use(express.json());
 
 app.use("/api/technicians", technicianRoutes);
@@ -22,6 +24,9 @@ app.use("/api/repairs", require("./routes/repairRoutes"));
 app.use("/api/bids", require("./routes/bidRoutes"));
 app.use("/api/reviews", require("./routes/reviewRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
+app.use("/api/messages", require("./routes/messageRoutes"));
+
+const Message = require("./models/Message");
 
 app.get("/", (req, res) => {
   res.send("Repair Marketplace API Running");
@@ -41,11 +46,20 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  socket.on("sendMessage", (data) => {
-    console.log("Message received:", data);
+  socket.on("sendMessage", async (data) => {
+    try {
+      // Persistence: Save to DB
+      await Message.create({
+        sender: data.senderId,
+        receiver: data.receiverId,
+        text: data.text
+      });
 
-    // send message to all connected users
-    io.emit("receiveMessage", data);
+      // Broadcast message to all (frontend filters appropriate conversation)
+      io.emit("receiveMessage", data);
+    } catch (err) {
+      console.error("Socket error - failed to save message:", err);
+    }
   });
 
   socket.on("disconnect", () => {

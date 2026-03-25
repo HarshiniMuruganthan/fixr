@@ -11,7 +11,12 @@ const bidSchema = new mongoose.Schema(
     ref: "RepairRequest"
   },
   price: Number,
-  message: String
+  message: String,
+  status: {
+    type: String,
+    enum: ["pending", "accepted", "rejected"],
+    default: "pending"
+  }
 },
 { timestamps: true }
 );
