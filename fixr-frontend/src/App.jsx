@@ -31,6 +31,7 @@ import AdminDashboard   from './pages/admin/AdminDashboard'
 import AdminUsersPage   from './pages/admin/AdminUsersPage'
 import AdminRepairsPage from './pages/admin/AdminRepairsPage'
 import AdminReportsPage from './pages/admin/AdminReportsPage'
+import AdminSettingsPage from './pages/admin/AdminSettingsPage'
 
 export default function App() {
   return (
@@ -74,6 +75,7 @@ export default function App() {
                   <Route path="/admin/users"   element={<AdminUsersPage />} />
                   <Route path="/admin/repairs" element={<AdminRepairsPage />} />
                   <Route path="/admin/reports" element={<AdminReportsPage />} />
+                  <Route path="/admin/settings" element={<AdminSettingsPage />} />
                   <Route path="/chat"          element={<ChatPage />} />
                   <Route path="/profile"       element={<ProfilePage />} />
                 </Route>

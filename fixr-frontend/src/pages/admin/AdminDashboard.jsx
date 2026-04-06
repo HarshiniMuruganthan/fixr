@@ -16,6 +16,8 @@ export default function AdminDashboard() {
     open:       repairs.filter(r => r.status === 'open').length,
     inProgress: repairs.filter(r => r.status === 'in_progress').length,
     completed:  repairs.filter(r => r.status === 'completed').length,
+    suspended:  users.filter(u => u.isSuspended).length,
+    verified:   users.filter(u => u.role === 'technician' && u.isVerified).length,
   }
 
   const completionRate = stats.total
@@ -40,11 +42,13 @@ export default function AdminDashboard() {
       </div>
 
       {/* Secondary stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {[
           { label: 'Open',        value: stats.open,       color: 'bg-emerald-500/10 text-emerald-600' },
           { label: 'In Progress', value: stats.inProgress, color: 'bg-blue-500/10 text-blue-600'       },
           { label: 'Completed',   value: stats.completed,  color: 'bg-brand-500/10 text-brand-600'     },
+          { label: 'Verified Techs', value: stats.verified, color: 'bg-cyan-500/10 text-cyan-600'       },
+          { label: 'Suspended',   value: stats.suspended,  color: 'bg-rose-500/10 text-rose-600'       },
         ].map(s => (
           <div key={s.label} className={`rounded-xl p-4 ${s.color} animate-in`}>
             <div className="text-2xl font-display font-bold">{loading ? '—' : s.value}</div>

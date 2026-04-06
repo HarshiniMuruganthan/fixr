@@ -25,6 +25,14 @@ const userSchema = new mongoose.Schema(
     },
     bio: String,
     yearsOfExperience: Number,
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    isSuspended: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

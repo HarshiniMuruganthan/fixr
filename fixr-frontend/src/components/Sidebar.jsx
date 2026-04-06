@@ -27,8 +27,9 @@ const adminNav = [
   { to: '/admin/users',    icon: '👥', label: 'Users' },
   { to: '/admin/repairs',  icon: '🔧', label: 'Repairs' },
   { to: '/admin/reports',  icon: '📊', label: 'Reports' },
+  { to: '/admin/settings', icon: '⚙',  label: 'Site Settings' },
   { to: '/chat',           icon: '💬', label: 'Messages' },
-  { to: '/profile',        icon: '⚙',  label: 'Profile' },
+  { to: '/profile',        icon: '👤', label: 'Profile' },
 ]
 
 const roleLabels = { user: 'Customer', technician: 'Technician', admin: 'Administrator' }

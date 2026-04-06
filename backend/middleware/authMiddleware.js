@@ -12,6 +12,10 @@ const protect = async (req, res, next) => {
 
       req.user = await User.findById(decoded.id).select("-password");
 
+      if (req.user && req.user.isSuspended) {
+        return res.status(403).json({ message: "Your account has been suspended" });
+      }
+
       next();
     } catch (error) {
       res.status(401).json({ message: "Not authorized" });

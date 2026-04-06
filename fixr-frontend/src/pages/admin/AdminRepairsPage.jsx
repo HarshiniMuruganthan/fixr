@@ -2,16 +2,29 @@ import { useState } from 'react'
 import { adminAPI } from '../../api/admin'
 import useApi from '../../hooks/useApi'
 import { useDebounce } from '../../hooks/useDebounce'
-import { StatusBadge, EmptyState } from '../../components/ui'
+import { StatusBadge, EmptyState, ConfirmDialog, Spinner } from '../../components/ui'
 import { formatCurrency, timeAgo } from '../../utils/helpers'
+import toast from 'react-hot-toast'
 
 const STATUS_FILTERS = ['all', 'open', 'in_progress', 'completed', 'pending']
 
 export default function AdminRepairsPage() {
-  const { data: repairs = [], loading } = useApi(() => adminAPI.getRepairs(), [], { defaultData: [] })
+  const { data: repairs = [], loading, setData: setRepairs } = useApi(() => adminAPI.getRepairs(), [], { defaultData: [] })
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
-  const debouncedSearch     = useDebounce(search, 300)
+  const [confirmId, setConf]  = useState(null)
+  const [deleting, setDel]    = useState(null)
+  const debouncedSearch       = useDebounce(search, 300)
+
+  const handleDelete = async (id) => {
+    setDel(id)
+    try {
+      await adminAPI.deleteRepair(id)
+      setRepairs(r => r.filter(x => x._id !== id))
+      toast.success('Repair deleted')
+    } catch { toast.error('Failed to delete') }
+    finally { setDel(null); setConf(null) }
+  }
 
   const filtered = repairs.filter(r => {
     const matchStatus = filter === 'all' || r.status === filter
@@ -70,8 +83,8 @@ export default function AdminRepairsPage() {
         <EmptyState icon="📋" title="No repairs found" description="Adjust your search or filter." />
       ) : (
         <div className="card overflow-hidden animate-in stagger-2">
-          <div className="hidden sm:grid grid-cols-[1fr_140px_90px_100px_90px] gap-3 px-4 py-2.5 border-b border-dark-100 dark:border-dark-800 bg-dark-50 dark:bg-dark-900/50">
-            {['Title / Customer', 'Location', 'Budget', 'Status', 'Date'].map(h => (
+          <div className="hidden sm:grid grid-cols-[1fr_140px_90px_100px_90px_50px] gap-3 px-4 py-2.5 border-b border-dark-100 dark:border-dark-800 bg-dark-50 dark:bg-dark-900/50">
+            {['Title / Customer', 'Location', 'Budget', 'Status', 'Date', ''].map(h => (
               <span key={h} className="text-xs font-semibold text-dark-400 dark:text-dark-500 uppercase tracking-wide">{h}</span>
             ))}
           </div>
@@ -79,7 +92,7 @@ export default function AdminRepairsPage() {
             {filtered.map((r, i) => (
               <div
                 key={r._id}
-                className="flex sm:grid sm:grid-cols-[1fr_140px_90px_100px_90px] items-center gap-3 px-4 py-3 hover:bg-dark-50 dark:hover:bg-dark-800/40 transition-colors animate-in"
+                className="flex sm:grid sm:grid-cols-[1fr_140px_90px_100px_90px_50px] items-center gap-3 px-4 py-3 hover:bg-dark-50 dark:hover:bg-dark-800/40 transition-colors animate-in"
                 style={{ animationDelay: `${i * 0.02}s` }}
               >
                 <div className="min-w-0">
@@ -94,11 +107,25 @@ export default function AdminRepairsPage() {
                 </p>
                 <div><StatusBadge status={r.status} /></div>
                 <p className="hidden sm:block text-xs text-dark-400 dark:text-dark-500">{timeAgo(r.createdAt)}</p>
+                <div className="flex justify-end">
+                   <button onClick={() => setConf(r._id)} className="text-dark-400 hover:text-red-500 transition-colors">
+                     {deleting === r._id ? <Spinner size="sm" /> : '🗑'}
+                   </button>
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={!!confirmId}
+        onClose={() => setConf(null)}
+        onConfirm={() => handleDelete(confirmId)}
+        title="Delete Repair Request?"
+        message="This will permanently remove the repair request and all associated bids."
+        confirmLabel="Delete"
+        danger
+      />
     </div>
   )
 }

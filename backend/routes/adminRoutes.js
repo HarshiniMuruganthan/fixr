@@ -8,10 +8,24 @@ const {
   getAllUsers,
   deleteUser,
   getAllRepairs,
+  toggleVerify,
+  toggleSuspend,
+  deleteRepair,
+  getSettings,
+  updateSettings,
 } = require("../controllers/adminController");
 
-router.get("/users", protect, authorizeRoles("admin"), getAllUsers);
-router.delete("/users/:id", protect, authorizeRoles("admin"), deleteUser);
-router.get("/repairs", protect, authorizeRoles("admin"), getAllRepairs);
+router.use(protect, authorizeRoles("admin"));
+
+router.get("/users", getAllUsers);
+router.delete("/users/:id", deleteUser);
+router.patch("/users/:id/verify", toggleVerify);
+router.patch("/users/:id/suspend", toggleSuspend);
+
+router.get("/repairs", getAllRepairs);
+router.delete("/repairs/:id", deleteRepair);
+
+router.get("/settings", getSettings);
+router.patch("/settings", updateSettings);
 
 module.exports = router;

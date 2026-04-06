@@ -29,6 +29,22 @@ export default function AdminUsersPage() {
     }
   }
 
+  const toggleVerify = async (id) => {
+    try {
+      const { data } = await adminAPI.toggleVerify(id)
+      setUsers(u => u.map(x => x._id === id ? { ...x, isVerified: data.user.isVerified } : x))
+      toast.success(data.message)
+    } catch { toast.error('Action failed') }
+  }
+
+  const toggleSuspend = async (id) => {
+    try {
+      const { data } = await adminAPI.toggleSuspend(id)
+      setUsers(u => u.map(x => x._id === id ? { ...x, isSuspended: data.user.isSuspended } : x))
+      toast.success(data.message)
+    } catch { toast.error('Action failed') }
+  }
+
   const filtered = users.filter(u => {
     const matchRole   = roleFilter === 'all' || u.role === roleFilter
     const matchSearch = !debouncedSearch ||
@@ -87,8 +103,8 @@ export default function AdminUsersPage() {
       ) : (
         <div className="card overflow-hidden animate-in stagger-2">
           {/* Table header */}
-          <div className="hidden sm:grid grid-cols-[auto_1fr_1fr_110px_100px_72px] gap-3 items-center px-4 py-2.5 bg-dark-50 dark:bg-dark-900/50 border-b border-dark-100 dark:border-dark-800">
-            {['', 'Name', 'Email', 'Role', 'Joined', ''].map((h, i) => (
+          <div className="hidden sm:grid grid-cols-[auto_1fr_1fr_110px_100px_160px] gap-3 items-center px-4 py-2.5 bg-dark-50 dark:bg-dark-900/50 border-b border-dark-100 dark:border-dark-800">
+            {['', 'Name', 'Email', 'Role', 'Joined', 'Actions'].map((h, i) => (
               <span key={i} className="text-xs font-semibold text-dark-400 dark:text-dark-500 uppercase tracking-wide">{h}</span>
             ))}
           </div>
@@ -97,12 +113,15 @@ export default function AdminUsersPage() {
             {filtered.map((u, i) => (
               <div
                 key={u._id}
-                className="flex sm:grid sm:grid-cols-[auto_1fr_1fr_110px_100px_72px] items-center gap-3 px-4 py-3 hover:bg-dark-50 dark:hover:bg-dark-800/40 transition-colors animate-in"
+                className="flex sm:grid sm:grid-cols-[auto_1fr_1fr_110px_100px_160px] items-center gap-3 px-4 py-3 hover:bg-dark-50 dark:hover:bg-dark-800/40 transition-colors animate-in"
                 style={{ animationDelay: `${i * 0.025}s` }}
               >
                 <Avatar name={u.name} size="sm" className="shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-dark-900 dark:text-dark-100 truncate">{u.name}</p>
+                  <p className="text-sm font-medium text-dark-900 dark:text-dark-100 truncate">
+                    {u.name} {u.isVerified && <span title="Verified" className="ml-1 text-brand-500 text-xs">✔</span>}
+                    {u.isSuspended && <span className="ml-2 badge badge-red text-[10px] py-0">Suspended</span>}
+                  </p>
                   <p className="text-xs text-dark-400 dark:text-dark-500 sm:hidden truncate">{u.email}</p>
                   {u.service && <p className="text-xs text-dark-400 dark:text-dark-500">{u.service}</p>}
                 </div>
@@ -114,13 +133,24 @@ export default function AdminUsersPage() {
                   }`}>{u.role}</span>
                 </div>
                 <p className="hidden sm:block text-xs text-dark-400 dark:text-dark-500">{formatDate(u.createdAt)}</p>
-                <div className="ml-auto sm:ml-0">
+                <div className="flex gap-2 items-center justify-end">
+                  {u.role === 'technician' && (
+                    <button onClick={() => toggleVerify(u._id)} title={u.isVerified ? 'Unverify' : 'Verify'}
+                      className={`p-1.5 rounded-lg transition-colors ${u.isVerified ? 'text-brand-600 bg-brand-50' : 'text-dark-400 hover:bg-dark-100'}`}>
+                      ✔
+                    </button>
+                  )}
+                  <button onClick={() => toggleSuspend(u._id)} disabled={u.role === 'admin'} title={u.isSuspended ? 'Unsuspend' : 'Suspend'}
+                    className={`p-1.5 rounded-lg transition-colors ${u.isSuspended ? 'text-rose-600 bg-rose-50' : 'text-dark-400 hover:bg-dark-100 disabled:opacity-0'}`}>
+                    ⛔
+                  </button>
                   <button
                     onClick={() => setConf(u._id)}
                     disabled={deleting === u._id || u.role === 'admin'}
-                    className="btn-ghost text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 text-xs py-1 px-2 disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 disabled:opacity-0"
+                    title="Delete"
                   >
-                    {deleting === u._id ? <Spinner size="sm" /> : 'Delete'}
+                    {deleting === u._id ? <Spinner size="sm" /> : '🗑'}
                   </button>
                 </div>
               </div>
